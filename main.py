@@ -1,143 +1,135 @@
-import pygame, random, sys
+import random
+import tkinter as tk
+from tkinter import PhotoImage
+from PIL import Image, ImageTk  # Correct import for resizing images
 
-pos_data = [(10, 523), (70, 523), (130, 523), (190, 523), (250, 523), (310, 523), (370, 523), (430, 523), (490, 523), (550, 523), 
-        (550, 466), (490, 466), (430, 466), (370, 466), (310, 466), (250, 466), (190, 466), (130, 466), (70, 466), (10, 466), 
-        (10, 409), (70, 409), (130, 409), (190, 409), (250, 409), (310, 409), (370, 409), (430, 409), (490, 409), (550, 409), 
-        (550, 352), (490, 352), (430, 352), (370, 352), (310, 352), (250, 352), (190, 352), (130, 352), (70, 352), (10, 352), 
-        (10, 295), (70, 295), (130, 295), (190, 295), (250, 295), (310, 295), (370, 295), (430, 295), (490, 295), (550, 295), 
-        (550, 238), (490, 238), (430, 238), (370, 238), (310, 238), (250, 238), (190, 238), (130, 238), (70, 238), (10, 238), 
-        (10, 181), (70, 181), (130, 181), (190, 181), (250, 181), (310, 181), (370, 181), (430, 181), (490, 181), (550, 181), 
-        (550, 124), (490, 124), (430, 124), (370, 124), (310, 124), (250, 124), (190, 124), (130, 124), (70, 124), (10, 124), 
-        (10, 67), (70, 67), (130, 67), (190, 67), (250, 67), (310, 67), (370, 67), (430, 67), (490, 67), (550, 67), 
-        (550, 10), (490, 10), (430, 10), (370, 10), (310, 10), (250, 10), (190, 10), (130, 10), (70, 10), (10, 10)]
+# Snakes and Ladders positions
+snakes = {98: 79, 94: 75, 93: 73, 87: 36, 62: 19, 64: 60, 54: 34, 17: 7}
+ladders = {4: 15, 9: 31, 28: 84, 1: 38, 21: 42, 51: 67, 80: 99, 72: 91}
 
-player_1_pos = 0
-player_2_pos = 0
-pygame.init()
-BLUE= (26, 167, 236)
-GREEN = (27,121,20)
-clock = pygame.time.Clock()
-image = pygame.image.load("board.png")
-dices=[]
-for x in range(1, 6):
-    img = pygame.image.load(f"dice_{x}.jpeg") 
-    img = pygame.transform.scale(img, (40, 40))
-    dices.append(img)
-image = pygame.transform.scale(image, (600,600))
-img_surface = pygame.Surface((600, 560))
-window = pygame.display.set_mode((600,600))
-pygame.display.set_caption("Snake Ladder Ludo")
+# Player Positions
+positions = {"Red": 1, "Blue": 1}
+current_turn = "Red"  # Track whose turn it is
 
-class circle():
-    def __init__(self, x, y, height, line_width, color:tuple):
-        self.x = x
-        self.y = y
-        self.height = height
-        self.line_width = line_width
-        self.color = color
+# Game Setup
+root = tk.Tk()
+root.title("Snakes and Ladders")
 
-    def draw(self, window, border=None):
-        if border:
-            pygame.draw.circle(window, border, (self.x+(self.height//2), self.y+(self.height//2)), self.height//2)
-        pygame.draw.circle(window, self.color, (self.x+(self.height//2), self.y+(self.height//2)), (self.height//2)-(self.line_width))
+# Load Board Image
+original_board = Image.open(r"C:\Users\lenovo\OneDrive\Desktop\Documents\board.jpg")
+resized_board = original_board.resize((500, 500))  # Adjust size as needed
+board_img = ImageTk.PhotoImage(resized_board)
 
+# Create Canvas and Set Board Image
+canvas = tk.Canvas(root, width=500, height=500)
+canvas.pack()
+canvas.create_image(0, 0, anchor=tk.NW, image=board_img)
 
-def draw_game():
-    img_surface.blit(image, (0, 0))
-    window.blit(img_surface,(0, 0))
-    pygame.draw.rect(window, (121, 126, 246), (0, 560, 600 , 40))
-    if player_1_pos==0 and player_2_pos==0:
-        player_1 = circle(70, 560, 40, 5, BLUE)
-        player_2 = circle(10, 560, 40, 5, GREEN)
-        player_1.draw(window, (30, 47, 121))
-        player_2.draw(window, (20,91,15))
-    pygame.display.update()
+# Load Dice Images
+dice_images = {
+    1: ImageTk.PhotoImage(Image.open("dice_1.jpeg")),
+    2: ImageTk.PhotoImage(Image.open("dice_2.jpeg")),
+    3: ImageTk.PhotoImage(Image.open("dice_3.jpeg")),
+    4: ImageTk.PhotoImage(Image.open("dice_4.jpeg")),
+    5: ImageTk.PhotoImage(Image.open("dice_5.jpeg")),
+    6: ImageTk.PhotoImage(Image.open("dice_6.jpeg")),
+}
 
-def change_dice(data_sd):
-    window.blit(dices[data_sd], (260, 560))
-    pygame.display.update()
+# Player Turn Display
+turn_label = tk.Label(root, text="Red's Turn", font=("Arial", 14))
+turn_label.pack()
 
-def show_winner(winner):
-    font = pygame.font.Font("Game_Of_Squids.ttf ", 32)
-    window.fill((0,180,216))
-    if winner=="1":
-        text = font.render("Blue won", True, (0, 0, 0))
-    elif winner=="2":
-        text = font.render("Green won", True, (0, 0, 0))
-    text_rect = text.get_rect()
-    text_rect.topleft = (200, 250)
-    window.blit(text, text_rect)
-    pygame.display.update()
+# Dice Image Display
+dice_label = tk.Label(root)
+dice_label.pack()
+dice_label.config(image=dice_images[1])
 
-def check_win():
-    if player_1_pos>=100:
-        show_winner("1")
-    elif player_2_pos>=100:
-        show_winner("2")
+# Move Player Function
+def move_player(player):
+    global positions, current_turn
 
-def go_ladder(pos=0):
-    LADDERS={1:38, 4: 14, 9: 31, 21: 42, 28: 84, 51: 67, 72:91, 80:99, 17:7, 54:34, 64:60, 87:36, 93:73, 94:75, 98:79}
-    if pos in LADDERS.keys():
-        return LADDERS[pos]
+    if player != current_turn:
+        return  # Prevent playing out of turn
+
+    roll = random.randint(1, 6)
+    dice_label.config(image=dice_images[roll])  # Update dice image
+
+    new_pos = positions[player] + roll
+    if new_pos <= 100:
+        # Snakes or ladders check
+        new_pos = snakes.get(new_pos, new_pos)
+        new_pos = ladders.get(new_pos, new_pos)
+        positions[player] = new_pos
+
+    draw_players()
+    root.update()
+
+    # Check win
+    if positions[player] == 100:
+        win_screen(player)
+        return
+
+    # Change Turn
+    current_turn = "Red" if player == "Blue" else "Blue"
+    turn_label.config(text=f"{current_turn}'s Turn")
+    update_buttons()
+
+# Update Button States Based on Turn
+def update_buttons():
+    if current_turn == "Red":
+        btn_red.config(state="normal")
+        btn_blue.config(state="disabled")
     else:
-        return pos
+        btn_red.config(state="disabled")
+        btn_blue.config(state="normal")
 
-def update_pos(play_a_pos, play_b_pos):
-    img_surface.blit(image, (0, 0))
-    window.blit(img_surface,(0, 0)) 
-    if play_a_pos!=0 and play_b_pos!=0:
-        player_1 = circle(pos_data[play_a_pos-1][0], pos_data[play_a_pos-1][1], 40, 5, BLUE)
-        player_2 = circle(pos_data[play_b_pos-1][0], pos_data[play_b_pos-1][1], 40, 5, GREEN)
-        player_1.draw(window, (30, 47, 121))
-        player_2.draw(window, (20,91,15))
-    elif play_a_pos==play_b_pos and play_a_pos!=0 and play_b_pos!=0:
-        player_1 = circle(pos_data[play_a_pos-1][0], pos_data[play_a_pos-1][1]+10, 40, 5, BLUE)
-        player_2 = circle(pos_data[play_b_pos-1][0], pos_data[play_b_pos-1][1]-10, 40, 5, GREEN)
-        player_1.draw(window, (30, 47, 121))
-        player_2.draw(window, (20,91,15))
-    pygame.display.update()
-   
-def main_game():
-    loop = True
-    global player
-    global player_1_pos
-    global player_2_pos
-    draw_game() 
-    update_pos(player_1_pos, player_2_pos)
-    player=1
-    data_sd = random.randint(0, random.randint(1, 6))
-    while loop:
-        check_win()
-        clock.tick(60)
-        for events in pygame.event.get():
-            if events.type == pygame.QUIT:
-                loop=False
-            if events.type == pygame.KEYDOWN:
-                if events.key == pygame.K_SPACE:
-                     player *= -1
-                     data_sd = random.randint(1, 6)  
-                     change_dice(data_sd - 1)  
-                     if player==1:
-                        if 100-player_1_pos>6:
-                            player_1_pos+=(data_sd+1)
-                            player_1_pos = go_ladder(player_1_pos)
-                            update_pos(player_1_pos, player_2_pos)
-                        elif (100-player_1_pos)<=6 and (data_sd+1)<=(100-player_1_pos):
-                            player_1_pos+=(data_sd+1)
-                            player_1_pos = go_ladder(player_1_pos)
-                            update_pos(player_1_pos, player_2_pos)
-                        elif player==-1:
-                            if 100-player_2_pos>6:
-                                player_2_pos+=(data_sd+1)
-                                player_2_pos = go_ladder(player_2_pos)
-                                update_pos(player_1_pos, player_2_pos)
-                            elif (100-player_2_pos)<=6 and (data_sd+1)<=(100-player_2_pos):
-                                player_2_pos+=(data_sd+1)
-                                player_1_pos = go_ladder(player_1_pos)
-                                update_pos(player_1_pos, player_2_pos)
-                                update_pos(player_1_pos, player_2_pos)
-                            if events.key == pygame.K_ESCAPE:
-                                loop = False
-                                change_dice(data_sd)
+# Draw Player Markers
+player_markers = {}
 
-main_game()
+def draw_players():
+    for marker in player_markers.values():
+        canvas.delete(marker)
+
+    cell_size = 50
+    board_size = 10
+
+    for player, pos in positions.items():
+        row = 9 - ((pos - 1) // board_size)
+        col = (pos - 1) % board_size
+
+        # Zigzag pattern adjustment
+        if (9 - row) % 2 == 1:
+            col = board_size - 1 - col
+
+        x = col * cell_size + cell_size // 2
+        y = row * cell_size + cell_size // 2
+
+        color = "red" if player == "Red" else "blue"
+
+        player_markers[player] = canvas.create_oval(
+            x - 5, y - 5, x + 5, y + 5, fill=color
+        )
+
+# Win Screen
+def win_screen(player):
+    root.destroy()
+    win_root = tk.Tk()
+    win_root.configure(bg="red" if player == "Red" else "blue")
+    win_root.geometry("400x400")
+    label = tk.Label(win_root, text=f"{player} Won!", font=("Arial", 24, "bold"), fg="white", bg=win_root["bg"])
+    label.pack(expand=True)
+    win_root.mainloop()
+
+# Buttons
+btn_red = tk.Button(root, text="Red Rolls", command=lambda: move_player("Red"), bg="red", fg="white", font=("Arial", 12))
+btn_red.pack(side="left", padx=20)
+
+btn_blue = tk.Button(root, text="Blue Rolls", command=lambda: move_player("Blue"), bg="blue", fg="white", font=("Arial", 12))
+btn_blue.pack(side="right", padx=20)
+
+# Initial setup
+draw_players()
+update_buttons()
+
+# Start the game
+root.mainloop()
