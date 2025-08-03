@@ -16,7 +16,7 @@ root = tk.Tk()
 root.title("Snakes and Ladders")
 
 # Load Board Image
-original_board = Image.open(r"C:\Users\lenovo\OneDrive\Desktop\Documents\board.jpg")
+original_board = Image.open(r"board.jpg")
 resized_board = original_board.resize((500, 500))  # Adjust size as needed
 board_img = ImageTk.PhotoImage(resized_board)
 
@@ -133,3 +133,4 @@ update_buttons()
 
 # Start the game
 root.mainloop()
+
